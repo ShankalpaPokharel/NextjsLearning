@@ -1,7 +1,13 @@
+import { Metadata } from "next"
 
+export const metadata:Metadata = {
+  title:{
+    absolute:"blog"
+  }
+}
 
-export default function SecondBlog() {
+export default function Blog() {
   return (
-    <div>SecondBlog Post</div>
+    <div className="text-red-500">SecondBlog Post</div>
   )
 }
