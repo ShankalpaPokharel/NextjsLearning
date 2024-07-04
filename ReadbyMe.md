@@ -561,6 +561,314 @@ This can be useful if you want to show a route while keeping the context of the 
 
 
 
+## Route Handlers
+We've learnt how to route to pages 
+
+    - We can also create custom request handlers for our routes using a feature called route handlers 
+
+    - Unlike page routes, which respond with HTML content, route handlers allow you to create RESTful endpoints, giving you full control over the response
+
+    - There is no overhead of having to create and configure a separate server
+
+    - Route handlers are also great for making external API requests 
+
+    - Route handlers run server-side, ensuring that sensitive information like private keys remains secure and never gets shipped to the browser
+
+    - Route Handlers are the equivalent of API routes in Page router
+
+![alt text](<images/Screenshot 2024-07-04 at 5.19.11 PM.png>)
+
+### Get Request
+
+![alt text](<images/Screenshot 2024-07-04 at 5.34.19 PM.png>)
+
+![alt text](<images/Screenshot 2024-07-04 at 5.35.17 PM.png>)
+
+
+### Post Request 
+```tsx
+export async function POST(request:Request) {
+    const comment = await request.json()
+    console.log("comment  .. ",comment)
+    const newcomment = {
+        id:comments.length +1,
+        text:comment.text
+    }
+    comments.push(newcomment)
+    return new Response(JSON.stringify(newcomment),{
+        headers:{
+            "Content-Type":"application/json"
+        },
+        status:201
+    })
+    // return Response.json(newcomment)
+}
+
+```
+
+### Dynamic route handler
+```ts
+import {comments} from "../data"
+
+export async function GET(_request:Request,{params}:{params:{id:string}}) {
+    const comment = comments.find(comment => comment.id === parseInt(params.id))
+    return Response.json(comment);
+}
+```
+
+
+### PATCH Request
+
+```ts
+// http://localhost:3000/comments/2
+// json Content
+// {
+//     "text":"Updated Comment"
+//   }
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+    const body = await request.json()
+    const {text}= body
+    const index = comments.findIndex(
+        comment =>comment.id === parseInt(params.id)
+    )
+    comments[index].text = text;
+    
+    return Response.json(comments[index]);
+}
+
+```
+
+### Delete Request 
+```ts
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+
+   
+    const index = comments.findIndex(
+        comment =>comment.id === parseInt(params.id)
+    )
+    const deletedComment = comments[index]
+    comments.splice(index,1)
+    
+    return Response.json(deletedComment);
+    
+}
+
+```
+
+### URL Query Parameters
+
+```ts
+import { comments } from "./data";
+import { type NextRequest } from "next/server";
+
+export async function GET(request:NextRequest) {
+    const searchParams = request.nextUrl.searchParams
+    const query = searchParams.get("query")
+    const filteredComments = query 
+        ? comments.filter(comment => comment.text.includes(query))
+        : comments
+    return Response.json(filteredComments)
+}
+
+```
+
+
+### Redirect in Route Handler
+```ts
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
+    
+    if (parseInt(params.id) >comments.length){
+        redirect("/comments")
+    }
+
+    const comment = comments.find((comment) => comment.id === parseInt(params.id));
+    return Response.json(comment);
+}
+```
+
+### Header in Route Handlers
+
+HTTP headers represent the metadata associated with an API request and
+response.
+
+<u><b>Request Headers </b></u>
+
+These are sent by the client, such as a web browser, to the server. They contain essential information about the request, which helps the server understand and process it correctly.
+
+```User-Agent``` which identifies the browser and operating system to the server. 
+
+```Accept``` which indicates the content types like text, video, or image formats that the client can process.
+
+```Authorization``` header used by the client to authenticate itself to the server
+
+<u><b>Response Headers </b></u>
+
+These are sent back from the server to the client. They provide information about the server and the data being sent in the response.
+
+```Content-Type``` header which indicates the media type of the response. It tells the client what the data type of the returned content is, such as text/html for HTML
+documents, application/json for JSON data, etc.
+
+```ts
+import { type NextRequest } from "next/server"
+// or 
+import { headers } from "next/headers"
+
+export async function GET(request:NextRequest) {
+    const requestHeaders = new Headers(request.headers)
+    // or 
+    const headerList = headers()
+
+    console.log(requestHeaders.get("Authorization"))
+    // or 
+    console.log(headerList.get(("Authorization")))
+
+    return new Response("profile data",{
+       headers:{
+         "Content-Type":"text/html",
+         "Set-Cookie" : "theme=dark"
+       }
+    })
+}
+```
+
+### Cookies in Route Handlers
+
+Cookies are small pieces of data that a server sends to a user's web browser The browser may store the cookie and send it back to the same server with later requests
+
+Cookies are mainly used for three purposes
+
+- Session management like logins and shopping carts
+- Personalization like user preferences and themes
+- Tracking like recording and analyzing user behavior.
+
+```ts
+import { cookies } from "next/headers"
+
+export async function GET(request:NextRequest) {
+    const requestHeaders = new Headers(request.headers)
+    // or 
+    const headerList = headers()
+
+    cookies().set("resultsPerPage","20") //one way to set cookie 
+    console.log(cookies().get("resultsPerPage"))
+
+    // get cookie 
+    const theme = request.cookies.get("theme")
+    console.log(theme)
+
+    console.log(requestHeaders.get("Authorization"))
+    // or 
+    console.log(headerList.get(("Authorization")))
+
+    // cookies() has delete has set size function 
+
+    return new Response("profile data",{
+       headers:{
+         "Content-Type":"text/html",
+         "Set-Cookie" : "theme=dark" //anoter way to set cookies
+       }
+    })
+}
+```
+
+### Caching in Route Handlers 
+
+Route Handlers are cached by default when using the GET method with the Response object in Next.js
+
+How to opt out of caching?
+- dynamic mode in Segment Config Option
+- using the Request object with the GET method
+- employing dynamic functions like headers) and cookies)
+
+```ts
+export const dynamic = "force-dynamic"; //by default it is aut o; doing this
+//because after bulid time doens't change cause of caching
+
+export async function GET() {
+    return Response.json({
+        time:new Date().toLocaleTimeString()
+    })
+}
+```
+
+
+## Middleware
+
+Middleware in Next.js is a powerful feature that offers a robust way to intercept and control the flow of requests and responses within your applications 
+
+It does this at a global level significantly enhancing features like redirection, URL rewrites, authentication, headers and cookies management, and more.
+  
+Middleware allows us to specify paths where it will be active
+- Custom matcher config
+```ts
+//src/middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
+
+export function middleware(request:NextRequest){
+    return NextResponse.redirect(new URL("/",request.url))
+}
+
+export const config = {
+    matcher:"/profile"
+}
+
+```
+
+
+- Conditional statements.
+
+```ts
+import { NextResponse, type NextRequest } from "next/server";
+
+export function middleware(request:NextRequest){
+if(request.nextUrl.pathname === "/profile"){
+    // return NextResponse.redirect(new URL(("/hello"),request.url))
+    return NextResponse.rewrite(new URL(("/hello"),request.url)) //doesn't chagne the url but content will be change
+}
+}
+
+```
+```ts
+import { type NextRequest, NextResponse } from "next/server";
+
+export function middleware(request:NextRequest){
+    const response = NextResponse.next()
+
+    const themePreference = request.cookies.get("theme")
+
+    if(!themePreference){
+        response.cookies.set("theme","dark")
+    }
+    response.headers.set("custom-header","custom-value1")
+    return response
+```
+### Routing Section Summary
+- Route definition
+- Pages and layouts
+- Dynamic routes
+- Route groups
+- Linking and Navigation
+- Handling errors in routes
+- Parallel and Intercepting routes
+- Route handlers and middleware
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
