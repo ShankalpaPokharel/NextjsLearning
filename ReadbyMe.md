@@ -367,6 +367,168 @@ export default function OrderProduct() {
 }
 ```
 
+## Templates
+Templates are similar to layouts in that they wrap each child layout or page. 
+
+But, with templates, when a user navigates between routes that share a template, a new instance of the components is mounted, DOM elements are recreated, state is not preserved , and effects are re-syncghronized. 
+
+A template can be defined by exporting a default React component from a template.js or template.tsx file. 
+
+Similar to layouts, templates also should accept a children props which will render the nested segments in the route. 
+
+![alt text](<images/Screenshot 2024-07-04 at 9.45.41 AM.png>)
+
+## Special Files
+ - page.tsx
+ - layout.tsx
+ - template.tsx
+ - not-found.tsx
+ - loading.tsx
+ - error.tsx
+
+### loading.tsx 
+This file allows us to create loading states that are displayed to users while a specific route segments's content is loading. 
+
+The loading state appears immediatelly upon navigation, giveing users the assurance that the application is responsive and actively loading content. 
+
+<b>It is like React Loading Skeleton</b>
+
+### loading.tsk Benefits
+1. You can disply the loading state as soon as a user navigates to a new route 
+    The immediate feedback reassures user theat their actions has been acknowledged, reduces preceived loading times, and makes the application feel more responsive. 
+
+2. Next.js allows the creation of shared layouts that remain interactive while new route segments are loading. 
+
+    User can continue interacting with crtain parts of the application, asuch as a navigation menu or sidebar, if the main content is still being fetched. 
+
+
+### error.tsx
+![alt text](<images/Screenshot 2024-07-04 at 10.07.37 AM.png>)
+
+Automatically wrap a route segment and it's nested children in a React Error Boundary
+
+Create error UI tailored ot specific segents using the file-system hierarchy to adjust granularity
+
+Isolate error to affected segments while keeping the rest of the application functional
+
+Add functionality to attempt to recover from an error without a full page reload.
+
+### Component Hierachy
+
+![alt text](<images/Screenshot 2024-07-04 at 10.10.43 AM.png>)
+
+### Recover From Error using reset
+![alt text](<images/Screenshot 2024-07-04 at 10.16.38 AM.png>)
+
+
+### Handling Errros in Nested Routes
+Error bubble up to the closest parent error boundary
+
+An error.tsx file will cater to errors for all its nested child segments
+
+By positoning error.tsx files at different levels in the nested folders of a route, you can achive a more granular level of error handling. 
+
+
+### Handling Errors in Layouts
+
+An error.tsx file will handle errors for all its nested child segments
+
+The error boundary doesn't catch error thrown here because it's nested inside the layout component.
+
+![alt text](<images/Screenshot 2024-07-04 at 10.10.43 AM.png>)
+
+![alt text](<images/Screenshot 2024-07-04 at 10.33.44 AM.png>)
+
+
+## Parallel Routes
+Parallel routes are an advanced routing mechanism that allows for the simultaneous rendering of multiple pages within the same layout
+
+![alt text](<images/Screenshot 2024-07-04 at 10.37.26 AM.png>)
+
+
+    - Parallel routes in Next.js are defined using a feature known as slots
+    - Slots help structure our content in a modular fashion
+    - To define a slot, we use the @folder naming convention
+    - Each slot is then passed as a prop to its corresponding 'layout.ts' file.
+
+![alt text](<images/Screenshot 2024-07-04 at 10.45.06 AM.png>)
+
+### Parallel Routes Benefits 
+
+A clear benefit of parallel routes is their ability to split a single layout into various slots, making the code more manageable
+
+Independent route handling
+
+Sub-navigation
+
+```tsx
+export default function DashboardLayout({
+    children,
+    users,
+    revenue,
+    notifications,
+}: {
+    children: React.ReactNode;
+    users: React.ReactNode;
+    revenue: React.ReactNode;
+    notifications: React.ReactNode;
+}) {
+    return (
+        <>
+            <div>{children}</div>
+            <div style={{ display: "flex" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div>{users}</div>
+                    <div>{revenue}</div>
+                </div>
+                <div style={{ display: "flex", flex: 1 }}>{notifications}</div>
+            </div>
+        </>
+    );
+}
+
+```
+
+### Independent Route Handling 
+Each slot of your layout, such as user analytics or revenue metrics, can have its own loading and error states 
+
+This granular control is particularly beneficial in scenarios where different sections of the page load at varying speeds or encounter unique errors
+
+![alt text](<images/Screenshot 2024-07-04 at 11.08.13 AM.png>)
+
+### Sub-navigation in routes 
+
+Each slot of your dashboard can essentially function as a mini-application,
+complete with its own navigation and state management 
+
+This is especially useful in a complex application such as our dashboard where different sections serve distinct purposes.
+
+![alt text](<images/Screenshot 2024-07-04 at 11.09.57 AM.png>)
+
+
+### Unmatched Routes
+<b><u>Navigation from the Ul</u></b>
+
+In the case of navigation within the Ul, Next. js retains the previously active state of a slot regardless of changes in the URL.
+
+<b><u>Page reload</u></b>
+
+
+Next.js immediately searches for a default.ts file within each unmatched slot. 
+
+The presence of this file is critical, as it provides the default content that Next.js will render in the user interface
+
+If this default.ts file is missing in any of the unmatched slots for the current route, Next.js will render a 404 error.
+
+
+### default.tsx 
+
+
+The ```default.tsx``` file in Next.js serves as a fallback to render content when the framework cannot retrieve a slot's active state from the current URL 
+You have complete freedom to define the Ul for unmatched routes: you can either mirror the content found in page.ts or craft an entirely custom view
+
+![alt text](<images/Screenshot 2024-07-04 at 11.35.29 AM.png>)
+
 
 
 
