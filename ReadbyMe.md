@@ -38,8 +38,8 @@ URL paths that users can access in the browser are defined by files and folders 
 All routes must be placed inside the app folder
 Every file that corresponds to a route must be named page.js or page.tsx
 Every folder corresponds to a path segments in the browers url
+![alt text](<images/Screenshot 2024-07-03 at 1.38.12 PM.png>)
 
-![alt text](<Screenshot 2024-07-03 at 1.38.12 PM.png>)
 
 ### Nested Routes
 
