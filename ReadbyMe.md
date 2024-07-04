@@ -530,6 +530,34 @@ You have complete freedom to define the Ul for unmatched routes: you can either 
 ![alt text](<images/Screenshot 2024-07-04 at 11.35.29 AM.png>)
 
 
+## Intercepting routes
+
+Intercepting routes allow you to intercept or stop the default routing behaviour to present an alternate view or component when navigating through the Ul, while still preserving the intended route for scenarios like page reloads 
+
+This can be useful if you want to show a route while keeping the context of the current page
+
+
+![alt text](<images/Screenshot 2024-07-04 at 4.21.11 PM.png>)
+
+![alt text](<images/Screenshot 2024-07-04 at 4.22.40 PM.png>)
+
+### Intercepting Routes Conventions
+
+    - (.) to match segment on the same level
+
+![alt text](<images/Screenshot 2024-07-04 at 4.37.02 PM.png>)
+
+    - (..) to match segments one level above 
+
+![alt text](<images/Screenshot 2024-07-04 at 4.46.56 PM.png>)
+
+
+    - (..)(..) to match segments two levels above
+    - (...) to match segments from the root app directory
+
+
+[Code of Photo gallary intercepiing routing source](https://github.com/gopinav/Next.js-14-Tutorials/tree/main/routing-demo/src/app/photo-feed)
+ 
 
 
 
