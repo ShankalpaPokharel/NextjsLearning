@@ -69,7 +69,6 @@ Every folder corresponds to a path segments in the browers url
 ### Not found Page
 ![alt text](<images/Screenshot 2024-07-03 at 2.36.23 PM.png>)
 
-[Learn From Codevolution](https://www.youtube.com/watch?v=ZjAqacIC_3c&list=PLC3y8-rFHvwjOKd6gdf4QtV1uYNiQnruI)
 
 
 ## File Colocation
@@ -269,3 +268,115 @@ export default function SecondBlog() {
 
 ```
 
+
+
+## Navigation
+File based routing
+
+We manually entered the URLKs in the browser's adress bar to navigate to the different route
+
+User rely on UI elements like links to navigate:
+ - Clicking on them or
+ - Through programmatic navigation after completing an action
+
+
+![alt text](<images/Screenshot 2024-07-03 at 8.23.09 PM.png>)
+
+### Link Componet Navigation
+
+To enable client-side navigation Next.js provides us wiht the Link component. 
+
+The ```<Link>``` component is a React component that extends the HTML ```<a>``` element,  and it's the primary way to navigate between routes in Next.js. 
+
+To use it, we need to import it from ```next/link```
+
+The```replace``` attribute is used to replace the current entry in the browser's history stack instead of adding a new one. This can be useful when you want to navigate without keeping the previous URL in the history.
+
+```tsx
+import Link from "next/link"
+
+export default function page() {
+  const productId = 100
+  return (
+    <>
+    <Link href="/"> Home</Link>
+    <div>Product List</div>
+    <h2> <Link href="products/1">Product 1</Link></h2>
+    <h2> <Link href="products/2">Product 2</Link></h2>
+    <h2> <Link href="products/3" replace>Product 3</Link></h2>
+    <h2> <Link href={`products/${productId}`}>Product {productId}</Link></h2>
+    </>
+  )
+}
+
+```
+
+### Active Links
+```jsx
+"use client"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import "./style.css"
+
+const navLinks = [
+    { name: "Register", href: "/register" },
+    { name: "Login", href: "/login" },
+    { name: "Forgot Password", href: "/forgot-password" },
+];
+
+export default function AuthLayout({ children }: {children: React.ReactNode}) {
+    const pathname = usePathname()
+   
+    console.log(pathname)
+    return (
+        <div>
+            {navLinks.map((link) => {
+                const isActive = pathname.startsWith(link.href)
+                return <Link href={link.href} key={link.name} className={isActive ? "font-bold mr-4":"text-blue-500 mr-4"}>{link.name}</Link>;
+            })}
+            {children}
+        </div>
+    );
+}
+
+```
+
+### Navigating Pprogrammatically
+![alt text](<images/Screenshot 2024-07-03 at 9.06.42 PM.png>)
+![alt text](<images/Screenshot 2024-07-03 at 9.07.25 PM.png>)
+
+```tsx
+"use client"
+import { useRouter } from "next/navigation"
+
+export default function OrderProduct() {
+    const router = useRouter()
+    const handleClick = ()=>{
+        console.log("Placing your order")
+        router.push("/")
+        // router.replace("/")
+        // router.back()
+        // router.forward()
+    }
+  return (
+    <>
+    <h1>Order Product</h1>
+    <button onClick={handleClick}>Place order</button>
+    </>
+  )
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Learn From Codevolution](https://www.youtube.com/watch?v=ZjAqacIC_3c&list=PLC3y8-rFHvwjOKd6gdf4QtV1uYNiQnruI)
