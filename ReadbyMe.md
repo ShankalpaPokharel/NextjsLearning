@@ -1164,6 +1164,615 @@ All the features and benefits we've discussed are already baked into the latest 
 By understanding the evolution of React's rendering, you now have the necessary background for the rest of this section which will focus on Next.js
 
 
+## RSC + Next.js
+
+
+By default, every component in a Next.js app is considered a server component
+
+In the RSC architecture and by extension in the Next.js app router, components are server components by default 
+
+To use client components, you must include the ```use client``` directive at the top
+
+Server components are rendered only on the server
+
+```Client components are rendered once on the server and then on the client```
+
+ 
+## RSC Rendering Lifecycle
+
+We're going to learn about the rendering lifecycle of server and client components
+
+In simpler terms, we'll explore how they come to life on your screen 
+
+For React Server Components (RSC), it's important to consider three elements: your browser (the client), and on the server side, Next.js (the framework) and React (the library)
+
+SC -server component
+CC - child component 
+
+![alt text](<images/Screenshot 2024-07-05 at 9.44.17 AM.png>)
+![alt text](<images/Screenshot 2024-07-05 at 9.46.42 AM.png>)
+
+
+## Server Rendering Strategies
+- Static rendering
+- Dynamic rendering
+- Streaming
+
+
+## Static rendering
+
+Static rendering is a server rendering strategy where we generate HTML pages at the time of building our application 
+
+This approach allows the page to be built once, cached by a CDN, and served to the client almost instantly 
+
+This optimization also enables you to share the result of the rendering work among different users, resulting in a significant performance boost for your application 
+
+Static rendering is particularly useful for blog pages, e-commerce product pages, documentation, and marketing pages
+
+### How to Statically Render?
+
+Static rendering is the default rendering strategy in the app router
+
+All routes are automatically prepared at build time without additional setup 
+
+<i>"Sir, throughout this video, you've mentioned that HTML is generated at build time. But there is no build for our application yet, is there? Aren't we running the application in development mode?"</i>
+ 
+
+### Production Server vs Dev Server 
+
+For production, an optimized build is created once, and you deploy that build 
+
+A development server, on the other hand, focuses on the developer experience 
+
+We can't afford to build our app once, make changes, rebuild, and so on 
+
+For production builds, a page will be pre-rendered once when we run the build command
+
+In development mode, a page will be pre-rendered for every request
+
+### Prefetching 
+
+Prefetching is a technique used to preload a route in the background before the user navigates to it
+
+Routes are automatically prefetched as they become visible in the user's viewport, either when the page first loads or as it comes into view through scrolling 
+
+For static routes, the entire route is prefetched and cached by default 
+
+When we load the homepage, Next.js prefetches the About and Dashboard
+routes, keeping them ready for instant navigation
+
+### Static Rendering Summary
+
+Static rendering is a strategy where the HTML is generated at build time 
+
+Along with the HTML, the RSC payload is created for each component, and JavaScript chunks are produced for client-side component hydration in the browser 
+
+If you navigate directly to a page route, the corresponding HTML file is served 
+
+I you navigate to the route from a different one, the route is created on the client side using the RSC payload and JavaScript chunks, without any additional requests to the server 
+
+Static rendering is great for performance and use cases include blogs, documentation, marketing pages etc
+
+
+## Dynamic Rendering 
+
+Dynamic rendering is a server rendering strategy where routes are rendered for each user at request time 
+
+It is useful when a route has data that is personalized to the user or contains information that can only be known at request time, such as cookies or the URL's search parameters 
+
+News websites, personalized e-commerce pages, and social media feeds are some examples where dynamic rendering is beneficial
+
+### How to Dynamically Render 
+
+During rendering, if a dynamic function is discovered, Next. js will switch to dynamically rendering the whole route 
+
+In Next.js, these dynamic functions are: ```cookies(), headers(), and searchParams```
+
+Using any of these will opt the whole route into dynamic rendering at request time
+
+As a developer, you do not need to choose between static and dynamic rendering. Next.js will automatically choose the best rendering strategy for each route based on the features and APIs used
+
+![alt text](<images/Screenshot 2024-07-05 at 10.16.28 AM.png>)
+
+
+## Streaming
+Streaming is a strategy that allows for progressive Ul rendering from the server
+
+Work is divided into chunks and streamed to the client as soon as it's ready 
+
+This enables users to see parts of the page immediately, before the entire content has finished rendering 
+
+Streaming significantly improves both the initial page loading performance and the rendering of Ul elements that rely on slower data fetches, which would otherwise block the rendering of the entire route
+
+Streaming is integrated into the Next.js App Router by default
+
+```tsx
+
+import { Suspense } from "react";
+
+import { Product } from "@/components/product";
+import { Reviews } from "@/components/reviews";
+
+export default function ProductDetailPage() {
+    return (
+        <div>
+            <h1>Product detail page</h1>
+
+            <Suspense fallback={<p>Loading product details .....</p>} >
+                <Product />
+            </Suspense>
+
+            <Suspense fallback={<p>Loading Review .....</p>}>
+                <Reviews />
+            </Suspense>
+        </div>
+    );
+}
+
+```
+
+## Server and Client Composition Patterns
+
+###  Server components
+
+- Fetching data
+- Directly accessing backend resources 
+- Protecting sensitive information (like access tokens and API keys) on the server 
+- Keeping large dependencies server-side, which helps in reducing client-side JavaScript.
+
+Client components
+- Adding interactivity
+- Handling event listeners (such as onClick(), onChange), etc
+- Managing state and lifecycle effects (using hooks like useState(),
+useReducer(), useEffect())
+- Using browser-exclusive APIs
+- Using custom hooks
+- Using React Class components.
+
+
+## Server-only Code
+
+Certain code is intended to execute only on the server
+
+You might have modules or functions that use multiple libraries, use environment variables, interact directly with a database, or process confidential information 
+
+Since JavaScript modules can be shared, it's possible for code that's meant only for the server to unintentionally end up in the client
+
+If server-side code gets bundled into the client-side JavaScript, it could lead to a bloated bundle size, expose secret keys, database queries, and sensitive business logic
+
+It is crucial to separate server-only code from client-side code to protect the application's security and integrity
+
+
+### server-only Package 
+
+Provide a build-time error if developers accidentally import one of these modules into a Client Component
+
+```npm i server-only```
+
+```tsx
+import "server-only"
+
+export const serverSideFunction = () => {
+    console. log(
+    `use multiple libraries,
+    use environment variables, interact with a database,
+    process confidential information`) 
+
+    return "server result";
+}
+
+```
+
+##  Third-party Packages
+
+Third-party packages in the ecosystem are gradually adapting, beginning to add the "use client" directive to components that rely on client-only features, marking a clear distinction in their execution environment
+
+Many components from npm packages, which traditionally leverage client-side features, haven't yet integrated this directive
+
+The absence of "use client" means that while these components will function correctly in Client Components, they may encounter issues or might not work at all within Server Components
+
+To address this, you can wrap third-party components that rely on client-only features in your own Client Components
+
+```tsx
+import ImageSlider from "@/components/imageSlider"
+import { serverSideFunction } from "@/utils/server-utils"
+
+export default function ServerRoutePage() {
+    console.log("Server route rendered")
+    const result = serverSideFunction()
+  return (
+    <div>
+        <div>ServerRoutePage</div>
+        <p>{result}</p>
+        <ImageSlider/>
+          
+    </div>
+    )
+}
+```
+```tsx
+"use client";
+
+import React from 'react';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+
+
+export default function ImageSlider() {
+    const settings = {
+        dots: true,
+      };
+      return (
+        <div className="image-slider-container">
+          <Slider {...settings}>
+            <div>
+              <img src="http://picsum.photos/400/200" />
+            </div>
+            <div>
+              <img src="http://picsum.photos/400/200" />
+            </div>
+            <div>
+              <img src="http://picsum.photos/400/200" />
+            </div>
+            <div>
+              <img src="http://picsum.photos/400/200" />
+            </div>
+          </Slider>
+        </div>
+      );
+}
+```
+
+
+## Context Providers
+
+Context providers are typically rendered near the root of an application to share global application state and logic
+
+For example, the application theme
+
+However, since React context is not supported in Server Components, attempting to create a context at the root of your application will result in an error
+
+To address this, you can create a context and render its provider inside a separate Client Component
+
+```tsx
+"use client";
+import { createContext, useContext } from "react";
+type Theme = {
+    colors: {
+        primary: string;
+        secondary: string;
+    };
+};
+const defaultTheme: Theme = {
+    colors: {
+        primary: "#007bff",
+        secondary: "#6c757d",
+    },
+};
+const ThemeContext = createContext<Theme>(defaultTheme);
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+    return <ThemeContext.Provider value={defaultTheme}>{children}</ThemeContext.Provider>;
+};
+export const useTheme = () => useContext(ThemeContext);
+```
+```tsx
+<ThemeProvider>
+    <body className={inter.className}>{children}</body>
+</ThemeProvider>
+```
+
+```tsx
+import { useTheme } from '@/components/theme-provider';
+export default function ClientRoutePage() {
+    const theme = useTheme()
+    const settings = {
+        dots: true,
+      };
+      return (
+        <div>
+            <h1 style={{color:theme.colors.primary}}>Client Route</h1>
+```
+
+## Client-only Code
+important to confine some functionality to the client side
+Just as it's important to restrict certain operations to the server it's equally
+
+Client-only code typically interacts with browser-specific features like the DOM, the window object, localStorage etc which are not available on the server server-side rendering
+
+Ensuring that such code is executed only on the client side prevents errors during server-side rendering
+
+To prevent unintended server side usage of client side code, we can use a package called client-only
+
+```npm i client-only```
+```tsx
+import 'client-only'
+
+export const clientSideFunction = () => {
+    console.log(
+      `use window object,
+       use localStorage`
+    );
+    return "client result";
+  };
+```
+
+## Client Component
+Placement To compensate for server components not being able to manage state and handle interactivity, you need to create client components 
+
+It's recommended to position these client components lower in your component tree
+
+![alt text](<images/Screenshot 2024-07-05 at 11.59.54 AM.png>)
+
+```tsx
+"use client"
+import { useState } from "react";
+import { NavLinks } from "./nav-links";
+import { NavSearch } from "./nav-search";
+
+export const Navbar = () => {
+  console.log(`Navbar rendered`);
+  const [search, setSearch] = useState("")
+  return (
+    <div>
+      <NavLinks />
+      <NavSearch />
+    </div>
+  );
+};
+```
+Instead of above use like this
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export const NavSearch = () => {
+  const [search, setSearch] = useState("");
+
+  console.log(`NavSearch rendered`);
+  return <div>Nav search input</div>;
+};
+```
+
+## Interleaving Server and Client Components
+
+```tsx
+import ClientComponentOne from "@/components/client-component-one";
+import ServerComponentOne from "@/components/server-component-one";
+
+export default function InterleavingPage() {
+    return (
+        <>
+            <div>InterleavingPage</div>
+            {/* <ServerComponentOne />
+            <ClientComponentOne/> */}
+            <ClientComponentOne>
+                <ServerComponentOne /> //it use fs system we use directly in client componet it will treated as client side to treat as a server side we can send it as a children
+            </ClientComponentOne>
+        </>
+    );
+}
+```
+```tsx
+export default function ClientComponentOne({children}:{children:React.ReactNode}){return (
+        <div>
+            <h1>client-component-one</h1>
+            {children}
+            {/* <ClientComponentTwo /> */}
+        </div>
+    );
+}
+```
+
+## Data Fetching
+
+### Data Fetching in App Router 
+
+App Router uses the React Server Components (RSC) architecture, which allows us to fetch data using either server components or client components 
+
+It's advantageous to fetch data using server components, as they have direct access to server-side resources such as databases or file systems 
+
+This not only taps into the server's computational power and proximity to data sources for efficient data fetching and rendering but also minimizes the need for client-side processing
+
+We will explore data fetching techniques using both server and client components in Next.js 
+
+Server components support various configurations for caching, revalidating, and optimizing data fetching 
+
+On the client side, data fetching is typically managed through third-party libraries such as ```TanStack Query``` which offers its own robust APIs
+
+------------------
+
+Fetching Data with Server Components 
+
+The RSC architecture in the app router introduces support for async and await keywords in Server Components 
+
+This allows you to use the familiar JavaScript await syntax by defining your component as an asynchronous function
+
+This is the basis for data fetching in server components
+```tsx
+type User = {
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+    phone: string;
+};
+
+export default async function UsersPage() {
+    const response = await fetch("https://jsonplaceholder.typicode.com/users");
+    const users = await response.json();
+    console.log(users);
+
+    return (
+        <div className="grid grid-cols-3 gap-2 p-4">
+            {users.map((user: User) => (
+                <div key={user.id} className="flex items-center justify-between p-4 bg-white shadow rounded-lg text-gray-600">
+                    <div className="flex flex-col space-y-1">
+                        <h2 className="text-lg font-semibold">{user.name}</h2>
+                        <p className="text-sm ">{user.username}</p>
+                    </div>
+                    <div className="flex flex-col space-y-1 items-end">
+                        <div className="text-md">{user.email}</div>
+                        <div className="text-md">{user.phone}</div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+```
+
+
+### Loading and Error States
+
+Traditionally in React, you might manage these states by creating separate variables and conditionally rendering Ul based on their values
+
+To implement a loading state, define and export a React component in ```loading.tsx ```
+
+For handling errors, define and export a React component in ```error.tsx```
+
+![alt text](<images/Screenshot 2024-07-05 at 1.13.12 PM.png>)
+
+
+```npm install json-server@0.17.4  ```
+
+## Caching Data
+
+By default, Next.js automatically caches the returned values of fetch in the Data
+Cache on the server
+
+-----------------
+
+### Data Cache
+<u><b>What is data cache? </b></u>
+
+It is a server-side cache that persists the result of data fetches across incoming
+server requests and deployments
+
+<u><b>Why is it required? </b></u>
+The data cache improves app performance and reduces costs by eliminating the
+need to re-fetch data from your data source with every request
+
+<u><b>How does it work?</b></u>
+![alt text](<images/Screenshot 2024-07-05 at 1.40.45 PM.png>)
+
+-----------------
+
+### Opting Out Of Caching 
+
+For individual data fetches, you can opt out of caching by setting the cache option
+to no-store 
+
+Once you specify the no-store option for a fetch request, subsequent fetch
+requests will also not be cached
+
+```tsx
+ const response = await fetch("http://localhost:3001/products",{
+      cache:"no-store"
+    })
+```
+
+By default, Next.js will cache fetch requests that occur before any dynamic functions (cookies), headers, searchParams are used and will not cache requests found after dynamic functions
+
+[FetchCache Documentation next.js](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#fetchcache)
+
+--------------------
+
+## Request Memoization 
+
+Request memoization is a technique that deduplicates requests for the same data
+within a single render pass 
+
+This approach allows for re-use of data in a React Component tree, prevents
+redundant network calls and enhances performance 
+
+For the initial request, data is fetched from an external source and the result is
+stored in memory 
+
+Subsequent requests for the same data within the same render pass retrieve the
+result from memory, bypassing the need to make the request again
+ 
+This optimization not only enhances performance but also simplifies data fetching
+within a component tree 
+
+When the same data is needed across different components in a route (e.g., in a Layout, Page, and multiple components), it eliminates the need to fetch data at the
+top of the tree and pass props between components 
+
+```tsx
+export default async function Layout({ children }: { children: React.ReactNode }) {
+    const productResponse = await fetch("http://localhost:3001/products/1");
+    const products = await productResponse.json();
+    console.log({products})
+    return <>{children}</>;
+}
+
+```
+
+Instead, data can be fetched directly within the components that require it, without concerns about the performance implications of multiple network requests for the same data
+
+![alt text](<images/Screenshot 2024-07-05 at 2.28.35 PM.png>)
+
+Request memoization is a React feature, not specifically a Next.js feature
+
+Memoization only applies to the GET method in fetch requests 
+
+Memoization only applies within the React Component tree. It does not extend to
+fetch requests in Route Handlers as they are not part of the React component tree
+
+For cases where fetch is not suitable (e.g., some database clients, CMS clients, or
+GraphQL clients), you can use the React cache function to memoize functions
+
+
+
+## Caching in Next.js
+
+By default, Next.js caches all fetch requests in the data cache, which is a persistent HTTP cache on the server
+
+This helps optimize pages such as a blog post where the content rarely changes
+
+We also know that we can opt out of caching
+- by using the cache: "no-store" option in a fetch request
+- by using a dynamic function before making the fetch request
+- by using a route segment config like fetch-cache or dynamic
+
+A news website is a great example where you want to make sure you're fetching the latest data at all times.
+
+This approach seems binary: either caching or no caching
+
+In real-world applications, there are scenarios where a middle ground is required
+
+For example, an event listings page might have event details such as schedule or
+venue information that change occasionally 
+
+In this case, it is acceptable to fetch updated data once every hour as freshness is not critical
+
+For such scenarios, Next.js allows us to revalidate the cache.
+
+
+## Revalidation 
+
+Revalidation is the process of purging the Data Cache and re-fetching the latest
+data
+
+<u><b>Time-based revalidation</b></u>
+Next.js automatically revalidates data after a certain amount of time has passed
+
+```tsx
+const response = await fetch("http://localhost:3001/products", {
+       next:{
+        revalidate:10 //10 sec
+       }
+    });
+    const products = await response.json();
+```
+You can set the revalidate route segment configuration to establish the default
+revalidation time for a layout or page: ```export const revalidate = 10;``` 
+
+Regarding the revalidation frequency, the lowest revalidate time across each layout and page of a single route will determine the revalidation frequency of the
+entire route
+
+
 
 
 
